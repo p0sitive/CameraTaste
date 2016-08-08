@@ -36,7 +36,7 @@ public class CameraConnectionManager {
     public String TAKE_PHOTO = "{\"token\":" + TOKEN_TAG + ",\"msg_id\":769}";
     public String START_TAKE_VIDEO = "{\"token\":" + TOKEN_TAG + ",\"msg_id\":513}";
     public String STOP_TAKE_VIDEO = "{\"token\":" + TOKEN_TAG + ",\"msg_id\":514}";
-    public String KEEP_ALIVE="{\"token\":" + TOKEN_TAG + ",\"msg_id\":13}";
+    public String KEEP_ALIVE = "{\"token\":" + TOKEN_TAG + ",\"msg_id\":13}";
 
     private static final String RESPONSE_TAKE_PHOTO = "photo_taken";
     private static final String RESPONSE_START_VIDEO = "start_video_record";
@@ -48,12 +48,18 @@ public class CameraConnectionManager {
     CameraBean mCamera;
 
     CameraSearchResult cameraSearchResult;
+    CameraConnectionChanged cameraConnectionChanged;
+    boolean isConnection;
+    //心跳包未回复时，重试次数
+    int keepAliveTest = 0;
+    long aliveTime = 0;
 
     private String broadcastIp;
     private Socket socket;
     private InputStream inputStream;
     private OutputStream outputStream;
     int token;
+    private long beginTime;
 
     private CameraConnectionManager() {
     }
@@ -108,7 +114,12 @@ public class CameraConnectionManager {
                             finalDatagramSocket.receive(receivePacket);
                             String recMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
                             Log.i(TAG, "scanLMInLAN: receivePacket--->" + recMsg);
-                            CameraBean lmDevice = CameraBean.parseUdpMsg(recMsg);
+                            CameraBean lmDevice ;
+                            if(recMsg.contains("{")){
+                               lmDevice = new Gson().fromJson(recMsg, CameraBean.class);
+                            }else{
+                                lmDevice = CameraBean.parseUdpMsg(recMsg);
+                            }
                             if (lmDevice != null) {
                                 Log.d(TAG, "scanLMInLAN: lmDevice--->" + lmDevice.toString());
                                 cameraSearchResult.success(lmDevice);
@@ -153,7 +164,13 @@ public class CameraConnectionManager {
 
                     if (judgeResponse(response, camera)) {
                         setToken(getToken(response));
-                        keepConnection(socket);
+                        beginTime = System.currentTimeMillis();
+                        isConnection = true;
+                        keepConnection();
+                        //相机已连接
+                        if(cameraConnectionChanged !=null) {
+                            cameraConnectionChanged.connect();
+                        }
                         cameraOptionResponse.success();
                     } else {
                         cameraOptionResponse.fail();
@@ -171,20 +188,22 @@ public class CameraConnectionManager {
         }.start();
     }
 
-    private void keepConnection(final Socket socket) throws IOException {
-        if (socket != null) {
+    private void keepConnection() throws IOException {
+        if (isSocketAvaliable()) {
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     try {
-                        writeInternal("");
+                        if(isConnection) {
+                            keepAliveRequest();
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         this.cancel();
                     }
                 }
             };
-            new Timer().schedule(task, 0, 15000L);
+            new Timer().schedule(task, 0, 20000L);
         }
     }
 
@@ -262,6 +281,10 @@ public class CameraConnectionManager {
         this.cameraSearchResult = cameraSearchResult;
     }
 
+    public void setCameraConnectionChanged(CameraConnectionChanged cameraConnectionChanged) {
+        this.cameraConnectionChanged = cameraConnectionChanged;
+    }
+
     public InputStream getInputStream() {
         return inputStream;
     }
@@ -282,6 +305,19 @@ public class CameraConnectionManager {
         void fail();
     }
 
+    /**
+     * 相机连接状态改变接口
+     * <p></p>
+     * 相机断开连接条件：
+     * 发送心跳包--20s未回应;
+     * 被其他app连接--response token:-4
+     */
+    public interface CameraConnectionChanged {
+        void connect();
+
+        void disconnect();
+    }
+
     //=========================
     public int getToken() {
         return token;
@@ -297,6 +333,55 @@ public class CameraConnectionManager {
             return Integer.parseInt(param.toString());
         } else {
             return token;
+        }
+    }
+
+    /**
+     * 获取相机连接时长
+     * @return
+     */
+    public long getAliveTime() {
+        return aliveTime;
+    }
+
+    private void keepAliveRequest() throws IOException {
+        //发送心跳包
+        writeInternal(getOptionString(KEEP_ALIVE));
+        Log.i(TAG, "keepAliveRequest: --->start keepAlive");
+        try {
+            String readInternal = readInternal();
+            if (TextUtils.isEmpty(readInternal)) {//心跳未回复？再次发送，3次未果后，即为失去连接
+                if (keepAliveTest < 3) {
+                    keepAliveRequest();
+                    keepAliveTest++;
+                    Log.i(TAG, "keepAliveRequest: disconnection--->reconnect:"+keepAliveTest);
+                } else {
+                    disconnect();
+                }
+            }else {
+                keepAliveTest = 0;
+                Response response = new Gson().fromJson(readInternal, Response.class);
+                Log.i(TAG, "keepAliveRequest: response--->" + response.toString());
+                if (response.getRval() == Response.INVALID_TOKEN) {
+                    disconnect();
+                } else {
+                    isConnection = true;
+                    aliveTime = System.currentTimeMillis() - beginTime;
+                    Log.i(TAG, "keepAliveRequest: alive time--->" + aliveTime);
+                }
+            }
+        } catch (Exception e) {
+            disconnect();
+            Log.i(TAG, "keepAliveRequest: error--->"+e.getMessage());
+        }
+    }
+
+    private void disconnect() {
+        isConnection = false;
+        aliveTime = 0;
+        Log.i(TAG, "keepAliveRequest: isConnection--->"+isConnection);
+        if(cameraConnectionChanged !=null) {
+            cameraConnectionChanged.disconnect();
         }
     }
 
@@ -335,6 +420,8 @@ public class CameraConnectionManager {
             throw new IOException();
         }
         setToken(getToken(tokenResponse));
+        isConnection = true;
+        keepConnection();
     }
 
     private void writeInternal(String content) throws IOException {

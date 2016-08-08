@@ -1,6 +1,5 @@
 package com.lee.cameratest;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,12 +12,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lee.cameratest.Camera.CameraConnectionManager;
 import com.lee.cameratest.Camera.bean.CameraBean;
 import com.lee.cameratest.Play.VideoController;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, CameraConnectionManager.CameraConnectionChanged {
 
     Button find;
     Button connect;
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     CameraBean camera;
     private CameraConnectionManager cameraConnectionManager;
 
-    VideoController controller ;
+    VideoController controller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +39,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        cameraConnectionManager = CameraConnectionManager.getInstance();
+        cameraConnectionManager.setCameraConnectionChanged(this);
 
         controller = (VideoController) findViewById(R.id.controller);
 
@@ -175,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     void findCamera() {
-        cameraConnectionManager = CameraConnectionManager.getInstance();
         cameraConnectionManager.startSearchCamera(MainActivity.this,
                 new CameraConnectionManager.CameraSearchResult() {
                     @Override
@@ -269,6 +271,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     isRecording = false;
                     show.setText("摄像失败。。。");
                     break;
+                case 0x011:
+                    Toast.makeText(MainActivity.this, "相机连接成功！", Toast.LENGTH_SHORT).show();
+                    break;
+                case 0x012:
+                    Toast.makeText(MainActivity.this, "相机断开连接！", Toast.LENGTH_SHORT).show();
+                    break;
 
             }
         }
@@ -276,5 +284,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void setBean(CameraBean bean) {
         this.camera = bean;
+    }
+
+    @Override
+    public void connect() {
+        handler.sendEmptyMessage(0x011);
+    }
+
+    @Override
+    public void disconnect() {
+        handler.sendEmptyMessage(0x012);
     }
 }
