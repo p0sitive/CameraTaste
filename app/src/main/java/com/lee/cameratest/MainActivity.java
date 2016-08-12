@@ -1,5 +1,7 @@
 package com.lee.cameratest;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,6 +20,8 @@ import com.lee.cameratest.Camera.CameraConnectionManager;
 import com.lee.cameratest.Camera.bean.CameraBean;
 import com.lee.cameratest.Play.VideoController;
 
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, CameraConnectionManager.CameraConnectionChanged {
 
     Button find;
@@ -30,6 +34,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CameraConnectionManager cameraConnectionManager;
 
     VideoController controller;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -294,5 +303,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void disconnect() {
         handler.sendEmptyMessage(0x012);
+    }
+
+    public void view(View view) {
+        startActivity(new Intent(this,ViewActivity.class));
     }
 }

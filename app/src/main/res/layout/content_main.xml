@@ -10,7 +10,9 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.lee.cameratest.MainActivity"
-    tools:showIn="@layout/activity_main">
+    tools:showIn="@layout/activity_main"
+    fontPath="fonts/NettoOT.otf"
+    tools:ignore="MissingPrefix">
 
     <LinearLayout
         android:orientation="vertical"
@@ -19,17 +21,26 @@
 
         <com.lee.cameratest.Play.VideoController
             android:id="@+id/controller"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="50dp">
 
         </com.lee.cameratest.Play.VideoController>
         <ProgressBar
             android:id="@+id/progress"
+
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="25dp"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/progress"
+            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:onClick="view"
+            android:text="Horizontal_view中文" />
         <Button
             android:id="@+id/find"
             android:layout_width="match_parent"
