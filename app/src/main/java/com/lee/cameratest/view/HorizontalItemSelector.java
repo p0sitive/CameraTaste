@@ -34,23 +34,37 @@ public class HorizontalItemSelector extends View {
      * 展示数据
      */
     private List<String> mListDatas;
+
     CharSequence[] values;
+
+    /**
+     * 选中的条目
+     */
+    int mSelectIndex;
+    /**
+     * 选中的字符串
+     */
+    String mSelectText;
+    /**
+     * 选中的字符串
+     */
+    CharSequence selSequence;
 
     private Paint mTextPaint;
     /**
      * 当前是否展开
      */
-    boolean isExpended;
+    boolean isExpended = false;
 
     /**
      * view的宽高
      */
     int mWidth, mHeight;
 
-    private float mTextHeight;
-    private float mTextWidth;
-    List<Node> nodes;
+    private float mTextHeight, mTextWidth;
+    private float mTopSpace, mBottomSpace;
 
+    OnItemSelected onItemSelected;
 
     public HorizontalItemSelector(Context context) {
         this(context, null);
@@ -68,10 +82,7 @@ public class HorizontalItemSelector extends View {
     }
 
     void initData() {
-        if (nodes == null) {
-            nodes = new ArrayList<>();
-            mListDatas = new ArrayList<>();
-        }
+        mListDatas = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             mListDatas.add("index:" + i);
         }
@@ -91,11 +102,6 @@ public class HorizontalItemSelector extends View {
 
             calNodesDistance();
 
-//
-            for (int i = 0; i < mListDatas.size(); i++) {
-                int width = (int) (i * mItemDistence);
-                nodes.add(new Node(width, mHeight / 2, mListDatas.get(i), false));
-            }
         }
     }
 
@@ -107,17 +113,49 @@ public class HorizontalItemSelector extends View {
         Log.i(TAG, "calNodesDistance: itemDistance is " + mItemDistence);
     }
 
+    public void setOnItemSelected(OnItemSelected onItemSelected) {
+        this.onItemSelected = onItemSelected;
+    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mWidth = MeasureSpec.getSize(widthMeasureSpec);
-        mHeight = MeasureSpec.getSize(heightMeasureSpec);
-        setMeasuredDimension(mWidth, mHeight);
-
+        setMeasuredDimension(measureWidth(widthMeasureSpec), measureHeight(heightMeasureSpec));
     }
 
-    boolean is = false;
+    private int measureWidth(int widthMeasureSpec) {
+        int measureMode = MeasureSpec.getMode(widthMeasureSpec);
+        int measureSize = MeasureSpec.getSize(widthMeasureSpec);
+        mWidth = getSuggestedMinimumWidth();
+        switch (measureMode) {
+            case MeasureSpec.AT_MOST:
+            case MeasureSpec.EXACTLY:
+                mWidth = measureSize;
+                break;
+            default:
+                break;
+        }
+        Log.i(TAG, "measureWidth: --->" + mWidth);
+        return mWidth;
+    }
+
+    private int measureHeight(int heightMeasure) {
+        int measureMode = MeasureSpec.getMode(heightMeasure);
+        int measureSize = MeasureSpec.getSize(heightMeasure);
+        mHeight = (int) (mBottomSpace + mTopSpace * 2 + mTextHeight);
+        switch (measureMode) {
+            case MeasureSpec.EXACTLY:
+                mHeight = Math.max(mHeight, measureSize);
+                break;
+            case MeasureSpec.AT_MOST:
+                mHeight = Math.min(mHeight, measureSize);
+                break;
+            default:
+                break;
+        }
+        Log.i(TAG, "measureHeight: --->" + mHeight);
+        return mHeight;
+    }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -126,83 +164,79 @@ public class HorizontalItemSelector extends View {
             return;
         }
         init();
-        for (Node node : nodes) {
-            drawText(canvas, node);
+        if (isExpended) {
+            for (int i = 0; i < mListDatas.size(); i++) {
+                canvas.drawText(mListDatas.get(i), mItemDistence * i, mHeight, mTextPaint);
+            }
+        } else {
+            canvas.drawText(mListDatas.get(mSelectIndex), 0, mHeight, mTextPaint);
         }
 
-    }
-
-    private void drawText(Canvas canvas, Node node) {
-        Log.i(TAG, "drawText: node--->" + node.getText() + " :x is" + node.getX());
-        canvas.drawText(node.getText(), node.getX(), node.getY(), mTextPaint);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        int col = (int) event.getX();
-        switch (event.getAction()){
+        switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
-                col = (int) event.getX();
+                int col = (int) event.getX();
+                if (isExpended) {
+                    mSelectIndex = getPositionItemFromX(col);
+                    if (mListDatas != null) {
+                        if (mSelectIndex == mListDatas.size())
+                            mSelectIndex = mListDatas.size() - 1;
+                        mSelectText = mListDatas.get(mSelectIndex);
+                    }
+                    if (onItemSelected != null) {
+                        onItemSelected.onSelected(mSelectIndex, mSelectText);
+                    }
+                } else {
+                    if (col > mItemDistence) {
+                        return true;
+                    }
+                }
                 isExpended = !isExpended;
-
+                setMeasuredDimension(isExpended ? (int) mTotalDistance : (int) mItemDistence, mHeight);
+                invalidate();
                 break;
         }
 
         return true;
     }
 
-    /**
-     * 节点信息类
-     */
-    private class Node {
-        private float x;
-        private float y;
-        private String text;
-        private boolean isSelect;
+    public int getmSelectIndex() {
+        return mSelectIndex;
+    }
 
-        public float getX() {
-            return x;
+    public void setmSelectIndex(int mSelectIndex) {
+        this.mSelectIndex = mSelectIndex;
+        if (mListDatas != null && mListDatas.size() > mSelectIndex) {
+            setmSelectText(mListDatas.get(mSelectIndex));
         }
+        invalidate();
+    }
 
-        public void setX(float x) {
-            this.x = x;
+    public String getmSelectText() {
+        return mSelectText;
+    }
+
+    public void setmSelectText(String mSelectText) {
+        this.mSelectText = mSelectText;
+        if (mListDatas != null) {
+            if (mListDatas.contains(mSelectText)) {
+                setmSelectIndex(mListDatas.indexOf(mSelectText));
+            }
         }
+        invalidate();
+    }
 
-        public float getY() {
-            return y;
-        }
+    int getPositionItemFromX(int x) {
+        return Math.round(x / (mItemDistence));
+    }
 
-        public void setY(float y) {
-            this.y = y;
-        }
 
-        public String getText() {
-            return text;
-        }
-
-        public void setText(String text) {
-            this.text = text;
-        }
-
-        public boolean isSelect() {
-            return isSelect;
-        }
-
-        public void setSelect(boolean select) {
-            isSelect = select;
-        }
-
-        public Node() {
-        }
-
-        public Node(float x, float y, String text, boolean isSelect) {
-            this.x = x;
-            this.y = y;
-            this.text = text;
-            this.isSelect = isSelect;
-        }
-
+    public interface OnItemSelected {
+        void onSelected(int index, String text);
     }
 
 }
