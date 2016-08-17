@@ -24,16 +24,20 @@ public class HorizontalItemSelector extends View {
     /**
      * 文字颜色
      */
-    public static final int colorSelectText = Color.WHITE;
-    public static final int colorDefultText = Color.GRAY;
+    private int colorSelectText = Color.WHITE;
+    private int colorDefultText = Color.GRAY;
+    private int colorSelectSign = Color.WHITE;
 
     private float mItemDistence = 10;
     private float mTotalDistance;
+    private float mPointSize = 20;
 
     /**
      * 展示数据
      */
     private List<String> mListDatas;
+
+    private List<Node> nodes;
 
     CharSequence[] values;
 
@@ -51,6 +55,7 @@ public class HorizontalItemSelector extends View {
     CharSequence selSequence;
 
     private Paint mTextPaint;
+    private Paint mSelectPaint;
     /**
      * 当前是否展开
      */
@@ -86,6 +91,7 @@ public class HorizontalItemSelector extends View {
         for (int i = 0; i < 5; i++) {
             mListDatas.add("index:" + i);
         }
+        nodes = new ArrayList<>();
         mTextPaint = new Paint();
         mTextPaint.setAntiAlias(true);
         mTextPaint.setAlpha(100);
@@ -95,6 +101,12 @@ public class HorizontalItemSelector extends View {
         Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
         mTextHeight = fontMetrics.descent - fontMetrics.ascent;
         mTextWidth = mTextPaint.measureText(mListDatas.get(0));
+
+        //选中状态，左侧标示
+        mSelectPaint = new Paint();
+        mSelectPaint.setAlpha(100);
+        mSelectPaint.setAntiAlias(true);
+        mSelectPaint.setColor(Color.RED);
     }
 
     private void init() {
@@ -102,12 +114,16 @@ public class HorizontalItemSelector extends View {
 
             calNodesDistance();
 
+            nodes.clear();
+            for (int i = 0; i < mListDatas.size(); i++) {
+                nodes.add(new Node(i, false, mItemDistence * i + mPointSize * 2, mHeight - mTextHeight / 4, mListDatas.get(i)));
+            }
         }
     }
 
     private void calNodesDistance() {
 
-        mItemDistence = mWidth / mListDatas.size();
+        mItemDistence = (mWidth - mPointSize) / mListDatas.size();
         mTotalDistance = mItemDistence * mListDatas.size();
         Log.i(TAG, "calNodesDistance: View width is " + mWidth);
         Log.i(TAG, "calNodesDistance: itemDistance is " + mItemDistence);
@@ -156,6 +172,12 @@ public class HorizontalItemSelector extends View {
         return mHeight;
     }
 
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        Log.d(TAG, "left:" + left);
+        Log.d(TAG, "right:" + right);
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -164,14 +186,43 @@ public class HorizontalItemSelector extends View {
             return;
         }
         init();
+        drawPoint(canvas);
+        // canvas.drawText(mListDatas.get(mSelectIndex), mPointSize * 2, mHeight - mTextHeight / 4, mTextPaint);
         if (isExpended) {
-            for (int i = 0; i < mListDatas.size(); i++) {
-                canvas.drawText(mListDatas.get(i), mItemDistence * i, mHeight, mTextPaint);
-            }
-        } else {
-            canvas.drawText(mListDatas.get(mSelectIndex), 0, mHeight, mTextPaint);
+//            for (int i = 0; i < mListDatas.size(); i++) {
+//                if (i != mSelectIndex) {
+//                    float tempX = mItemDistence * i + mPointSize * 2;
+//                    if (mSelectIndex > i) {
+//                        tempX = mItemDistence * (i + 1) + mPointSize * 2;
+//                    }
+//                    canvas.drawText(mListDatas.get(i), tempX,
+//                            mHeight - mTextHeight / 4, mTextPaint);
+//                }
+//            }
+//            for (int i = 0; i < nodes.size(); i++) {
+//                Node node = nodes.get(i);
+//                if (!node.isSelect()) {
+//                    canvas.drawText(node.getText(), node.getX(), node.getY(), mTextPaint);
+//                }
+//            }
         }
+        for (int i = 0; i < nodes.size(); i++) {
+            Node node = nodes.get(i);
+            if (isExpended) {
+                canvas.drawText(node.getText(), node.getX(), node.getY(), mTextPaint);
+            } else {
+                if (node.isSelect()) {
+                    canvas.drawText(node.getText(), node.getX(), node.getY(), mTextPaint);
+                }
+            }
+        }
+    }
 
+    /**
+     * 绘制选中的
+     */
+    void drawPoint(Canvas canvas) {
+        canvas.drawCircle(mPointSize, mHeight / 2, 15, mSelectPaint);
     }
 
     @Override
@@ -179,16 +230,18 @@ public class HorizontalItemSelector extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
-                int col = (int) event.getX();
+                int col = (int) (event.getX() - mPointSize * 2);
                 if (isExpended) {
-                    mSelectIndex = getPositionItemFromX(col);
-                    if (mListDatas != null) {
-                        if (mSelectIndex == mListDatas.size())
-                            mSelectIndex = mListDatas.size() - 1;
-                        mSelectText = mListDatas.get(mSelectIndex);
-                    }
+//                    mSelectIndex = getPositionItemFromX(col);
+//                    if (mListDatas != null) {
+//                        if (mSelectIndex == mListDatas.size())
+//                            mSelectIndex = mListDatas.size() - 1;
+//                        mSelectText = mListDatas.get(mSelectIndex);
+//                    }
+                    Node n = getSelectNode(col);
+                    refreshNodes(n);
                     if (onItemSelected != null) {
-                        onItemSelected.onSelected(mSelectIndex, mSelectText);
+                        onItemSelected.onSelected(n.getIndex(), n.getText());
                     }
                 } else {
                     if (col > mItemDistence) {
@@ -202,6 +255,23 @@ public class HorizontalItemSelector extends View {
         }
 
         return true;
+    }
+
+    private void refreshNodes(Node n) {
+        int index = n.getIndex();
+        n.select = true;
+        n.setX(mPointSize * 2);
+        for (int i = 0; i < nodes.size(); i++) {
+            Node node = nodes.get(i);
+            node.setSelect(false);
+            if (index != i) {
+                if (i < index) {
+                    node.setX(mItemDistence * (i + 1) + mPointSize * 2);
+                }
+            }
+            nodes.remove(i);
+            nodes.add(i, node);
+        }
     }
 
     public int getmSelectIndex() {
@@ -231,12 +301,85 @@ public class HorizontalItemSelector extends View {
     }
 
     int getPositionItemFromX(int x) {
-        return Math.round(x / (mItemDistence));
+        Log.d(TAG, "x:" + x);
+        int index = Math.round(x / (mItemDistence));
+        if (index < mSelectIndex) {
+            index -= 1;
+        }
+        return index;
     }
 
+    Node getSelectNode(int x) {
+        for (Node node : nodes) {
+            if (x >= node.getX() && x < node.getX() + mItemDistence) {
+                return node;
+            }
+        }
+        return null;
+    }
 
     public interface OnItemSelected {
         void onSelected(int index, String text);
     }
 
+    private class Node {
+        private int index;
+        private boolean select;
+
+        private float x;
+        private float y;
+        private String text;
+
+        public Node(int index, boolean select, float x, float y, String text) {
+            this.index = index;
+            this.select = select;
+            this.x = x;
+            this.y = y;
+            this.text = text;
+        }
+
+        public Node() {
+
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
+        public boolean isSelect() {
+            return select;
+        }
+
+        public void setSelect(boolean select) {
+            this.select = select;
+        }
+
+        public float getX() {
+            return x;
+        }
+
+        public void setX(float x) {
+            this.x = x;
+        }
+
+        public float getY() {
+            return y;
+        }
+
+        public void setY(float y) {
+            this.y = y;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+    }
 }

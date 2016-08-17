@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_gravity="center"
+    android:padding="2dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="29.3dp"
+        android:gravity="center"
+        android:textSize="15.3sp"
+        android:drawableStart="@drawable/left_point_item_selector"
+        android:drawablePadding="6.7dp"
+        android:text="1dfs"
+        tools:text="1dfs" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="29.3dp"
+        android:gravity="center"
+        android:textSize="12.7sp"
+        android:text="2asd"
+        tools:text="2asd" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="29.3dp"
+        android:gravity="center"
+        android:textSize="12.7sp"
+        android:text="3asd"
+        tools:text="3asd" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="29.3dp"
+        android:gravity="center"
+        android:textSize="12.7sp"
+        android:text="4asd"
+        tools:text="4asd" />
+
+</LinearLayout>
