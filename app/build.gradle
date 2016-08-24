@@ -27,4 +27,5 @@ dependencies {
     compile files('libs/liveman_wifi.jar')
     compile files('libs/gson-2.3.1.jar')
     compile 'uk.co.chrisjenx:calligraphy:2.2.0'
+    compile project(':HorizontalPicker')
 }

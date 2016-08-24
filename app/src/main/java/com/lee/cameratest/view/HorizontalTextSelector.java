@@ -3,6 +3,7 @@ package com.lee.cameratest.view;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -59,7 +60,7 @@ public class HorizontalTextSelector extends LinearLayout {
         textDefultColor = array.getColor(R.styleable.HorizontalItemSelector_android_textColor, Color.GRAY);
         textSelectColor = array.getColor(R.styleable.HorizontalItemSelector_selectedTextColor, Color.WHITE);
         colorSelectSign = array.getColor(R.styleable.HorizontalItemSelector_selectedSignColor, Color.WHITE);
-        mDatas = array.getTextArray(R.styleable.HorizontalItemSelector_values);
+        mDatas = array.getTextArray(R.styleable.HorizontalItemSelector_dataValues);
         array.recycle();
         init();
     }

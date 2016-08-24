@@ -21,7 +21,7 @@
     <declare-styleable name="HorizontalItemSelector">
         <attr name="android:textColor"/>
         <attr name="android:textSize"/>
-        <attr name="values" format="reference"/>
+        <attr name="dataValues" format="reference"/>
         <attr name="selectedTextColor" format="color"/>
         <attr name="selectedTextSize" format="dimension"/>
         <attr name="selectedSignColor" format="color"/>

@@ -1,53 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:layout_height="match_parent">
 
-    <RelativeLayout
+    <com.lee.cameratest.view.HorizontalTextSelector
+        android:id="@+id/aa"
+        android:layout_width="240dp"
+        android:layout_height="50dp"
+        android:layout_centerInParent="true"
+        android:background="@color/colorAccent"
+        android:textColor="#00f"
+        app:dataValues="@array/text"
+        app:selectedTextColor="#ff0000"
+        android:rotation="90"/>
+    <!--<com.lee.cameratest.view.HorizontalTextSelector-->
+        <!--android:layout_width="240dp"-->
+        <!--android:layout_height="50dp"-->
+        <!--android:layout_centerInParent="true"-->
+        <!--android:background="@color/colorAccent"-->
+        <!--android:textColor="#00f"-->
+        <!--app:dataValues="@array/text"-->
+        <!--app:selectedTextColor="#ff0000" />-->
+
+    <ImageView
+        android:id="@+id/pic"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:src="@mipmap/ic_launcher"
+        android:rotation="90"/>
+
+    <com.wefika.horizontalpicker.HorizontalPicker
+        android:id="@+id/picker"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="30dp"
+        android:layout_marginTop="20dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="2"
+        android:paddingBottom="16dp"
+        android:paddingTop="16dp"
+        android:textColor="#000000"
+        android:textSize="22sp"
+        app:dividerSize="10dp"
+        app:sideItems="2"
+        app:values="@array/text" />
+    <!--<RelativeLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content">-->
+    <!--<TextView-->
+    <!--android:id="@+id/text"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:textColor="@color/colorPrimaryDark"-->
+    <!--android:text="@string/app_name"/>-->
+    <!--<Button-->
+    <!--android:layout_toEndOf="@+id/text"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:onClick="add"/>-->
+    <!--</RelativeLayout>-->
+    <!--<com.lee.cameratest.view.HorizontalItemSelector-->
+    <!--android:id="@+id/selector"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_marginTop="200dp" />-->
 
-        <com.lee.cameratest.view.HorizontalTextSelector
-            android:id="@+id/aa"
-            android:layout_width="240dp"
-            android:layout_height="50dp"
-            android:textColor="#00f"
-            app:selectedTextColor="#ff0000"
-            app:values="@array/text" />
-
-        <Button
-            android:layout_toEndOf="@+id/aa"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="add" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/colorPrimaryDark"
-            android:text="@string/app_name"/>
-        <Button
-            android:layout_toEndOf="@+id/text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="add"/>
-    </RelativeLayout>
-    <com.lee.cameratest.view.HorizontalItemSelector
-        android:id="@+id/selector"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="200dp" />
-
-    <com.lee.cameratest.view.HorizontalItemSelector
-        android:id="@+id/selector2"
-        android:layout_width="250dp"
-        android:layout_height="100dp"
-        android:visibility="gone" />
-</LinearLayout>
+    <!--<com.lee.cameratest.view.HorizontalItemSelector-->
+    <!--android:id="@+id/selector2"-->
+    <!--android:layout_width="250dp"-->
+    <!--android:layout_height="100dp"-->
+    <!--android:visibility="gone" />-->
+</RelativeLayout>

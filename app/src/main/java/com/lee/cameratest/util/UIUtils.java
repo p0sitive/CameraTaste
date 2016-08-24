@@ -5,6 +5,8 @@ import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.view.View;
+import android.view.animation.RotateAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,18 +16,19 @@ import android.widget.Toast;
 public class UIUtils {
     private static Toast toast;
 
-    public static void showToast(Context context,String text){
-        if(toast!=null){
+    public static void showToast(Context context, String text) {
+        if (toast != null) {
             toast.setText(text);
             toast.setDuration(Toast.LENGTH_SHORT);
-        }else {
-            toast = Toast.makeText(context,text,Toast.LENGTH_SHORT);
+        } else {
+            toast = Toast.makeText(context, text, Toast.LENGTH_SHORT);
         }
         toast.show();
     }
 
     /**
      * Drawable着色
+     *
      * @param drawable
      * @param colors
      * @return
@@ -35,6 +38,7 @@ public class UIUtils {
         DrawableCompat.setTintList(wrappedDrawable, colors);
         return wrappedDrawable;
     }
+
     public static void setTextAndDrawable(TextView v, int resDraw, int resStr) {
         Resources resources = v.getResources();
         if (resDraw != 0) {
@@ -48,4 +52,15 @@ public class UIUtils {
         v.setText(resStr);
     }
 
+    public static void showAnimation(View mView) {
+        final float centerX = mView.getWidth() / 2.0f;
+        final float centerY = mView.getHeight() / 2.0f;
+        //这个是设置需要旋转的角度，我设置的是180度
+        RotateAnimation rotateAnimation = new RotateAnimation(0, 90, centerX,
+                centerY);
+        //这个是设置通话时间的
+        rotateAnimation.setDuration(500);
+        rotateAnimation.setFillAfter(true);
+        mView.startAnimation(rotateAnimation);
+    }
 }
