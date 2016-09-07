@@ -26,6 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ViewActivity"/>
+        <activity android:name=".View2Activity"/>
     </application>
 
 </manifest>
